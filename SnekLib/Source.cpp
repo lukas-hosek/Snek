@@ -22,10 +22,20 @@ int main()
 		Mode mode = Mode::ViewAI;
 
 		std::vector<Team> teams = {
-				Team::PSmrcekLSuk,
+				Team::GMolnarASporka,
+				Team::JFormanekVPetrov,
+				Team::MMarkoLHosek,
 				Team::MLabutRKrenek,
-				Team::MMarkoLHosek
+				Team::PManMSourek,
+				Team::PNohejlMMatous,
+				//Team::PSmrcekLSuk,
+				Team::TBarakMJarolimek,
+				Team::TGrunwaldDMikes,
+				Team::TJanakMKlima,
+				Team::TVahalikRSevcik
 		};
+
+		//teams = AllTeams;
 
 		if (mode == Mode::ViewAI || mode == Mode::ViewHuman)
 		{

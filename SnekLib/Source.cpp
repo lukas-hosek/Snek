@@ -22,9 +22,9 @@ int main()
 		Mode mode = Mode::ViewAI;
 
 		std::vector<Team> teams = {
-				Team::GMolnarASporka,
-				Team::JFormanekVPetrov,
-				Team::PManMSourek
+				Team::MMarkoLHosek
+				//Team::JFormanekVPetrov,
+				//Team::PManMSourek
 		};
 
 		if (mode == Mode::ViewAI || mode == Mode::ViewHuman)
@@ -45,7 +45,7 @@ int main()
 				batchUpdater.Teams = teams;
 				batchUpdater.Runs = 50;
 				batchUpdater.PrintInfo = false;
-				auto res = batchUpdater.RunMT(); 
+				auto res = batchUpdater.RunMT();
 				batchUpdater.PrintResults(res);
 		}
 		else if (mode == Mode::MonteCarlo)

@@ -24,7 +24,7 @@ void Board::Update()
 		}
 }
 
-bool Board::IsFree(Coord c)
+bool Board::IsFree(Coord c) const
 {
 		if (std::find_if(Treats.begin(), Treats.end(), [&](auto& t) {return t.Coord == c; }) != Treats.end())
 		{
@@ -42,12 +42,12 @@ bool Board::IsFree(Coord c)
 		return true;
 }
 
-bool Board::IsWithinBounds(Coord c)
+bool Board::IsWithinBounds(Coord c) const
 {
 		return c.x >= 0 && c.x < Cols&& c.y >= 0 && c.y < Rows;
 }
 
-Coord Board::GetNext(Coord c)
+Coord Board::GetNext(Coord c) const
 {
 		auto ret = c;
 		if (c.x < Cols - 1) 

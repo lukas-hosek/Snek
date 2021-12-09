@@ -144,6 +144,39 @@ struct BatchUpdater
 				}
 		}
 
+		static void FindBestOfMT(std::vector<Team> teams, int teamsInGame)
+		{
+				auto rd = std::random_device{};
+				auto rng = std::default_random_engine{ rd() };
+
+				Results results;
+				for (auto t : teams)
+				{
+						results[t] = 0;
+				}
+
+				while (true)
+				{
+						std::vector<BatchUpdater> updaters(100);
+						std::for_each(std::execution::par_unseq, updaters.begin(), updaters.end(), [&](auto& updater) {
+								std::vector<Team> shuffled = teams;
+								std::shuffle(std::begin(shuffled), std::end(shuffled), rng);
+								shuffled.resize(teamsInGame);
+								updater.Teams = shuffled;
+								updater.Runs = 10;
+								updater.PrintInfo = false;
+								auto res = updater.Run();
+								for (auto& resultPair : res)
+								{
+										results[resultPair.first] += resultPair.second;
+								}
+						});
+
+
+						BatchUpdater::PrintResults(results);
+				}
+		}
+
 private:
 		void RunImpl(SnekGame& game) {
 				while (true)

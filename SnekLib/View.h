@@ -103,7 +103,7 @@ struct View
 		{
 				game.Init();
 
-				Window = new sf::RenderWindow(sf::VideoMode(1600, 1000), "Snek!", sf::Style::Titlebar | sf::Style::Close);
+				Window = new sf::RenderWindow(sf::VideoMode(1900, 1100), "Snek!", sf::Style::Titlebar | sf::Style::Close);
 
 				for (auto& s : game.GetBoard().Sneks)
 				{

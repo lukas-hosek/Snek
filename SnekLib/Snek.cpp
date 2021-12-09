@@ -69,6 +69,8 @@ int Snek::LastIndex(Coord c)
 
 void Snek::ReportStepDuration(sf::Int64 durationMicroseconds, int frameNumber, bool mt)
 {
+		return;
+
 		AI.ReportStepDuration(durationMicroseconds);
 
 		if (durationMicroseconds > (AI.MicrosecondsLimit * (mt ? 50 : 1)))

@@ -15,9 +15,9 @@ struct Board
 		std::vector<std::unique_ptr<Snek>> Sneks;
 		std::set<Treat> Treats;
 		
-		bool IsFree(Coord c);
-		bool IsWithinBounds(Coord c);
-		Coord GetNext(Coord c);
+		bool IsFree(Coord c) const;
+		bool IsWithinBounds(Coord c) const;
+		Coord GetNext(Coord c) const;
 
 private:
 		friend class SnekGame;

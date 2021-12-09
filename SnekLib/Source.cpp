@@ -22,14 +22,9 @@ int main()
 		Mode mode = Mode::ViewAI;
 
 		std::vector<Team> teams = {
-				Team::MMarkoLHosek,
-				Team::MMarkoLHosek,
-				Team::MMarkoLHosek,
-				Team::MMarkoLHosek,
-				Team::MMarkoLHosek,
-				Team::MMarkoLHosek,
-				//Team::JFormanekVPetrov,
-				//Team::PManMSourek
+				Team::PSmrcekLSuk,
+				Team::MLabutRKrenek,
+				Team::MMarkoLHosek
 		};
 
 		if (mode == Mode::ViewAI || mode == Mode::ViewHuman)
@@ -48,13 +43,14 @@ int main()
 		{
 				BatchUpdater batchUpdater;
 				batchUpdater.Teams = teams;
-				batchUpdater.Runs = 50;
+				batchUpdater.Runs = 10;
 				batchUpdater.PrintInfo = false;
-				auto res = batchUpdater.RunMT();
+				auto res = batchUpdater.Run(); 
 				batchUpdater.PrintResults(res);
 		}
 		else if (mode == Mode::MonteCarlo)
 		{
-				BatchUpdater::FindBestOf(AllTeams, 3);
+				BatchUpdater::FindBestOfMT(AllTeams, 3);
+				//BatchUpdater::FindBestOf(AllTeams, 3);
 		}
 }

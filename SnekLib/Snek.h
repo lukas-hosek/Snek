@@ -25,7 +25,7 @@ struct Snek
 		std::vector<Coord> Body;
 		Dir Heading() const { return m_Heading; }
 		unsigned ID;
-		bool IsDeath() { return m_Death; }
+		bool IsDeath() const { return m_Death; }
 
 private:
 		friend class SnekGame;

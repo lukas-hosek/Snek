@@ -87,25 +87,31 @@ namespace MMLH
 			m_head(head)
 		{
 			memset(m_prosleElementySmery, 0, sizeof(m_prosleElementySmery));
+		}
 
 
-			for (auto& snek : board.Sneks)
-			{
-				for (auto&c : snek->Body)
-				{
-					m_hraciPole(c) = EOccupiedBy::Snek;
-				}
-			}
-
-			for(auto& treat : board.Treats)
+		void FillTreats(std::set<Treat> treats)
+		{
+			for (auto& treat : treats)
 			{
 				m_hraciPole(treat.Coord) = EOccupiedBy::Treat;
 			}
 		}
 
+
+		void FillSnek(std::vector<Coord> body)
+		{
+			for (auto& c : body)
+			{
+				m_hraciPole(c) = EOccupiedBy::Snek;
+			}
+		}
+
+
+
 		bool IsTreat(Coord c)
 		{
-			return std::find_if(m_board.Treats.begin(), m_board.Treats.end(), [&](const Treat& treat) { return treat.Coord == c; }) != m_board.Treats.end();
+			return m_hraciPole(c) == EOccupiedBy::Treat;
 		}
 		
 		bool IsUnoccupiedBySnake(Coord c)
@@ -113,8 +119,9 @@ namespace MMLH
 			return m_hraciPole(c) != EOccupiedBy::Snek;
 		}
 		
-		
-		void FloodFill()
+
+	
+		bool FloodFill()
 		{
 			std::deque<Coord> elementyKProchazeni;
 			elementyKProchazeni.push_back(m_head);
@@ -125,12 +132,12 @@ namespace MMLH
 				auto current = elementyKProchazeni.front();
 				elementyKProchazeni.pop_front();
 
-				if (m_hraciPole(current) == EOccupiedBy::Treat)
-				{
-					// nalezeno!
+				if (IsTreat(current))
+				{ // nalezeno!
 					m_endPos = current;
-					return;
+					return true;
 				}
+
 
 				// test left
 				Coord lc = GetCoordInDir(current, Dir::Left);
@@ -164,6 +171,9 @@ namespace MMLH
 					elementyKProchazeni.push_back(dc);
 				}
 			}
+
+			// nenasli jsme zadny treat
+			return false;
 		}
 
 
@@ -181,9 +191,9 @@ namespace MMLH
 		}
 
 
-		Path FindReversePath()
+		Path FindReversePath(const Coord endPos)
 		{
-			Coord pathPos = m_endPos;
+			Coord pathPos = endPos;
 			Path cesta;
 			while (pathPos != m_head)
 			{
@@ -195,12 +205,17 @@ namespace MMLH
 			return cesta;
 		}
 
-		DirPath FindReversDirPath()
+		DirPath FindReversDirPath(const Coord endPos)
 		{
 			DirPath dirPath;
-			Coord pathPos = m_endPos;
-			while(pathPos != m_endPos)
-			{}
+			Dir smerPrichodu = Dir::None;
+			Coord pathPos = endPos;
+			while(pathPos != m_head)
+			{
+				smerPrichodu = m_prosleElementySmery[pathPos.x][pathPos.y];
+				dirPath.push_back(smerPrichodu);
+				pathPos = GetCoordInDir(pathPos, GetInverseDir(smerPrichodu));
+			}
 
 			return dirPath;
 		}
@@ -217,7 +232,23 @@ struct SnekAI_MMarko_LHosek : public SnekAI
 		void Step(const Board& board, const Snek& snek, Dir& moveRequest, bool& boost) override
 		{
 			MMLH::FloodFillFinder fff(board, snek.Body[0]);
-			fff.FloodFill();
+			
+			for (auto& snek : board.Sneks)
+				fff.FillSnek(snek->Body);
+			fff.FillTreats(board.Treats);
+
+			if (fff.FloodFill())
+			{
+				moveRequest = fff.FindDirectionToNearestTreat();
+			}
+
+			else
+			{ // panik!
+			
+			}
+
+
+
 			boost = false;
 			moveRequest = fff.FindDirectionToNearestTreat();
 

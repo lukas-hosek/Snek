@@ -73,7 +73,7 @@ void Snek::ReportStepDuration(sf::Int64 durationMicroseconds, int frameNumber, b
 
 		if (durationMicroseconds > (AI.MicrosecondsLimit * (mt ? 50 : 1)))
 		{
-				//++m_Strikes;
+				++m_Strikes;
 				if (m_Strikes > 3) 
 				{
 						Die(frameNumber);

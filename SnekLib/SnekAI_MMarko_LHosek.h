@@ -37,7 +37,7 @@ namespace MMLH
 
 		}
 	}
-
+	
 
 	enum class EOccupiedBy
 	{
@@ -119,6 +119,9 @@ namespace MMLH
 		Coord m_head;
 		Dir m_prosleElementySmery[Board::Cols][Board::Rows]; // [x][y]
 		HraciPole& m_hraciPole;
+		int m_floodFillArea;
+		std::deque<Coord> m_elementyKProchazeni;
+
 
 
 		FloodFillFinder(HraciPole& pole, Coord head) :
@@ -133,15 +136,17 @@ namespace MMLH
 	
 		bool FloodFill()
 		{
+			m_elementyKProchazeni.clear();
+			
+			m_floodFillArea = 0;
 			memset(m_prosleElementySmery, 0, sizeof(m_prosleElementySmery));
 			
-			std::deque<Coord> elementyKProchazeni;
-			elementyKProchazeni.push_back(m_head);
+			m_elementyKProchazeni.push_back(m_head);
 
-			while (!elementyKProchazeni.empty())
+			while (!m_elementyKProchazeni.empty())
 			{
-				auto current = elementyKProchazeni.front();
-				elementyKProchazeni.pop_front();
+				auto current = m_elementyKProchazeni.front();
+				m_elementyKProchazeni.pop_front();
 
 				if (m_hraciPole.IsTreat(current))
 				{ // nalezeno!
@@ -155,7 +160,8 @@ namespace MMLH
 					if (nc.x < Board::Cols && nc.y < Board::Rows && m_hraciPole.IsUnoccupiedBySnake(nc) && m_prosleElementySmery[nc.x][nc.y] == Dir::None)
 					{
 						m_prosleElementySmery[nc.x][nc.y] = dir;
-						elementyKProchazeni.push_back(nc);
+						m_elementyKProchazeni.push_back(nc);
+						++m_floodFillArea;
 
 					}
 				};
@@ -264,23 +270,26 @@ struct SnekAI_MMarko_LHosek : public SnekAI
 		{
 			boost = false;
 
-			MMLH::HraciPole hraciPole;
-			hraciPole.FillBoard(board);
+			MMLH::HraciPole hraciPole_SneksOnly;
+			hraciPole_SneksOnly.FillSneks(board.Sneks);
+			MMLH::HraciPole hraciPole_Treats(hraciPole_SneksOnly);
+			hraciPole_Treats.FillTreats(board.Treats);
 
-			MMLH::FloodFillFinder fff(hraciPole, snek.Body[0]);
+			MMLH::FloodFillFinder fff(hraciPole_Treats, snek.Body[0]);
 			int attempts = 0;
 
 
-			while(fff.FloodFill() && attempts < 10)
+			while (fff.FloodFill() && attempts < 3)
 			{
 				++attempts;
 				auto path = fff.FindReversePath(fff.m_endPos);
 
 				// test if path doesn't block us
-				MMLH::HraciPole testPole(hraciPole);
+				MMLH::HraciPole testPole(hraciPole_SneksOnly);
 				testPole.FillSnek(path);
 				MMLH::FloodFillFinder fff2(testPole, fff.m_endPos);
-				if (fff2.FloodFill())
+				fff2.FloodFill();
+				if (fff2.m_floodFillArea > snek.Body.size() * 2)
 				{
 					// parada, uspech
 					moveRequest = fff.FindDirectionToNearestTreat();
@@ -288,11 +297,8 @@ struct SnekAI_MMarko_LHosek : public SnekAI
 				}
 				else
 				{
-					std::cout << "Failed Attempt!" << std::endl;
-					hraciPole(fff.m_endPos) = MMLH::EOccupiedBy::None;
+					hraciPole_Treats(fff.m_endPos) = MMLH::EOccupiedBy::None;
 				}
-
-				
 			}
 
 			{ // panik!
@@ -302,11 +308,8 @@ struct SnekAI_MMarko_LHosek : public SnekAI
 			//DummyStep(board, snek, moveRequest, boost);
 		}
 
-
 		void Panik(const Board& board, const Snek& snek, Dir& moveRequest, bool& boost)
 		{
-			std::cout << "Panik!" << std::endl;
-			
 			MMLH::HraciPole hraciPole;
 			hraciPole.FillBoard(board);
 
@@ -328,28 +331,33 @@ struct SnekAI_MMarko_LHosek : public SnekAI
 				moveRequest = Dir::Left;
 			}
 
-			if (testDirection(Dir::Right))
+			else if (testDirection(Dir::Right))
 			{
 				moveRequest = Dir::Right;
 			}
 
-			if (testDirection(Dir::Up))
+			else if (testDirection(Dir::Up))
 			{
 				moveRequest = Dir::Up;
 			}
 
-			if (testDirection(Dir::Down))
+			else if (testDirection(Dir::Down))
 			{
 				moveRequest = Dir::Down;
 			}
+			else
+			{
+				
+			}
 
-			boost =  snek.Body.size() > 3;
+			Coord boostResultCoord = MMLH::GetCoordInDir(MMLH::GetCoordInDir(head, moveRequest), moveRequest);
+			boost = const_cast<Board&>(board).IsWithinBounds(boostResultCoord) && hraciPole.IsUnoccupiedBySnake(boostResultCoord) && snek.Body.size() > 3;
 		}
 
 
 		void ReportStepDuration(sf::Int64 durationMicroseconds)  override
 		{
-			//if (durationMicroseconds > MicrosecondsLimit)
+			if (durationMicroseconds > MicrosecondsLimit)
 			{
 				std::cout << durationMicroseconds << "\n";
 			}

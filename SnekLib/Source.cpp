@@ -22,7 +22,10 @@ int main()
 		Mode mode = Mode::ViewAI;
 
 		std::vector<Team> teams = {
-				Team::MMarkoLHosek
+				Team::MMarkoLHosek,
+				Team::MMarkoLHosek,
+				Team::PManMSourek,
+				Team::PManMSourek,
 				//Team::JFormanekVPetrov,
 				//Team::PManMSourek
 		};

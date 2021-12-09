@@ -24,8 +24,10 @@ int main()
 		std::vector<Team> teams = {
 				Team::MMarkoLHosek,
 				Team::MMarkoLHosek,
-				Team::PManMSourek,
-				Team::PManMSourek,
+				Team::MMarkoLHosek,
+				Team::MMarkoLHosek,
+				Team::MMarkoLHosek,
+				Team::MMarkoLHosek,
 				//Team::JFormanekVPetrov,
 				//Team::PManMSourek
 		};

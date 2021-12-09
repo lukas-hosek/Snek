@@ -13,7 +13,7 @@ public:
 		Board& GetBoard() { return m_Board; }
 		~SnekGame();
 
-		static const int MaxSteps = 100000;
+		static const int MaxSteps = 2000;
 		unsigned SneksAlive();
 		SnekAI& GetWinner();
 

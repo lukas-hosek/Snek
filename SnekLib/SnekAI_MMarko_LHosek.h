@@ -65,6 +65,46 @@ namespace MMLH
 		{
 			return m_pole[c.x][c.y];
 		}
+
+		void FillTreats(const std::set<Treat>& treats)
+		{
+			for (const auto& treat : treats)
+			{
+				operator()(treat.Coord) = EOccupiedBy::Treat;
+			}
+		}
+
+		void FillSnek(const std::vector<Coord>& body)
+		{
+			for (const auto& c : body)
+			{
+				operator()(c) = EOccupiedBy::Snek;
+			}
+		}
+
+		void FillSneks(const std::vector<std::unique_ptr<Snek>>& sneks)
+		{
+			for (const auto& snek : sneks)
+			{
+				FillSnek(snek->Body);
+			}
+		}
+
+		void FillBoard(const Board& board)
+		{
+			FillTreats(board.Treats);
+			FillSneks(board.Sneks);
+		}
+
+		bool IsTreat(Coord c)
+		{
+			return 	operator()(c) == EOccupiedBy::Treat;
+		}
+
+		bool IsUnoccupiedBySnake(Coord c)
+		{
+			return 	operator()(c) != EOccupiedBy::Snek;
+		}
 	};
 	
 	
@@ -75,49 +115,19 @@ namespace MMLH
 		typedef std::vector<Dir> DirPath;
 
 
-		Board& m_board;
 		Coord m_endPos;
 		Coord m_head;
 		Dir m_prosleElementySmery[Board::Cols][Board::Rows]; // [x][y]
 		HraciPole m_hraciPole;
 
 
-		FloodFillFinder(const Board& board, Coord head) :
-			m_board(const_cast<Board&>(board)),
-			m_head(head)
+		FloodFillFinder(const HraciPole& pole, Coord head) :
+			m_hraciPole(pole), m_head(head)
 		{
 			memset(m_prosleElementySmery, 0, sizeof(m_prosleElementySmery));
 		}
 
-
-		void FillTreats(std::set<Treat> treats)
-		{
-			for (auto& treat : treats)
-			{
-				m_hraciPole(treat.Coord) = EOccupiedBy::Treat;
-			}
-		}
-
-
-		void FillSnek(std::vector<Coord> body)
-		{
-			for (auto& c : body)
-			{
-				m_hraciPole(c) = EOccupiedBy::Snek;
-			}
-		}
-
-
-
-		bool IsTreat(Coord c)
-		{
-			return m_hraciPole(c) == EOccupiedBy::Treat;
-		}
 		
-		bool IsUnoccupiedBySnake(Coord c)
-		{
-			return m_hraciPole(c) != EOccupiedBy::Snek;
-		}
 		
 
 	
@@ -132,44 +142,61 @@ namespace MMLH
 				auto current = elementyKProchazeni.front();
 				elementyKProchazeni.pop_front();
 
-				if (IsTreat(current))
+				if (m_hraciPole.IsTreat(current))
 				{ // nalezeno!
 					m_endPos = current;
 					return true;
 				}
 
-
-				// test left
-				Coord lc = GetCoordInDir(current, Dir::Left);
-				if (current.x > 0 && IsUnoccupiedBySnake(lc) && m_prosleElementySmery[lc.x][lc.y] == Dir::None)
+				auto CheckDirection = [&](Dir dir)
 				{
-					m_prosleElementySmery[lc.x][lc.y] = Dir::Left;
-					elementyKProchazeni.push_back(lc);
-				}
+					Coord nc = GetCoordInDir(current, dir);
+					if (nc.x < Board::Cols-1 && nc.y < Board::Rows -1 && m_hraciPole.IsUnoccupiedBySnake(nc) && m_prosleElementySmery[nc.x][nc.y] == Dir::None)
+					{
+						m_prosleElementySmery[nc.x][nc.y] = dir;
+						elementyKProchazeni.push_back(nc);
 
-				// right
-				Coord rc = GetCoordInDir(current, Dir::Right);
-				if (current.x < m_board.Cols-1 && IsUnoccupiedBySnake(rc) && m_prosleElementySmery[rc.x][rc.y] == Dir::None)
-				{
-					m_prosleElementySmery[rc.x][rc.y] = Dir::Right;
-					elementyKProchazeni.push_back(rc);
-				}
+					}
+				};
 
-				// up
-				Coord uc = GetCoordInDir(current, Dir::Up);
-				if (current.y > 0 && IsUnoccupiedBySnake(uc) && m_prosleElementySmery[uc.x][uc.y] == Dir::None)
-				{
-					m_prosleElementySmery[uc.x][uc.y] = Dir::Up;
-					elementyKProchazeni.push_back(uc);
-				}
+				CheckDirection(Dir::Left);
+				CheckDirection(Dir::Right);
+				CheckDirection(Dir::Up);
+				CheckDirection(Dir::Down);
 
-				// down
-				Coord dc = GetCoordInDir(current, Dir::Down);
-				if (current.y < m_board.Rows-1 && IsUnoccupiedBySnake(dc) && m_prosleElementySmery[dc.x][dc.y] == Dir::None)
-				{
-					m_prosleElementySmery[dc.x][dc.y] = Dir::Down;
-					elementyKProchazeni.push_back(dc);
-				}
+
+
+				//// test left
+				//Coord lc = GetCoordInDir(current, Dir::Left);
+				//if (current.x > 0 && m_hraciPole.IsUnoccupiedBySnake(lc) && m_prosleElementySmery[lc.x][lc.y] == Dir::None)
+				//{
+				//	m_prosleElementySmery[lc.x][lc.y] = Dir::Left;
+				//	elementyKProchazeni.push_back(lc);
+				//}
+
+				//// right
+				//Coord rc = GetCoordInDir(current, Dir::Right);
+				//if (current.x < Board::Cols-1 && m_hraciPole.IsUnoccupiedBySnake(rc) && m_prosleElementySmery[rc.x][rc.y] == Dir::None)
+				//{
+				//	m_prosleElementySmery[rc.x][rc.y] = Dir::Right;
+				//	elementyKProchazeni.push_back(rc);
+				//}
+
+				//// up
+				//Coord uc = GetCoordInDir(current, Dir::Up);
+				//if (current.y > 0 && m_hraciPole.IsUnoccupiedBySnake(uc) && m_prosleElementySmery[uc.x][uc.y] == Dir::None)
+				//{
+				//	m_prosleElementySmery[uc.x][uc.y] = Dir::Up;
+				//	elementyKProchazeni.push_back(uc);
+				//}
+
+				//// down
+				//Coord dc = GetCoordInDir(current, Dir::Down);
+				//if (current.y < Board::Rows-1 && m_hraciPole.IsUnoccupiedBySnake(dc) && m_prosleElementySmery[dc.x][dc.y] == Dir::None)
+				//{
+				//	m_prosleElementySmery[dc.x][dc.y] = Dir::Down;
+				//	elementyKProchazeni.push_back(dc);
+				//}
 			}
 
 			// nenasli jsme zadny treat
@@ -225,17 +252,52 @@ namespace MMLH
 }
 
 
+
+
+
 struct SnekAI_MMarko_LHosek : public SnekAI
 {
-		virtual Team GetTeam() override { return Team::MMarkoLHosek; };
+	enum class EState
+	{
+		FindingTreats,
+		AttackPrepare,
+		AttackExecute,
+		Panik
+
+	};
+	
+	
+	EState m_state;
+
+
+	SnekAI_MMarko_LHosek() :
+		m_state(EState::FindingTreats)
+	{}
+	
+	
+	
+	virtual Team GetTeam() override { return Team::MMarkoLHosek; };
 
 		void Step(const Board& board, const Snek& snek, Dir& moveRequest, bool& boost) override
 		{
-			MMLH::FloodFillFinder fff(board, snek.Body[0]);
+			switch (m_state)
+			{
+			case EState::FindingTreats:
+				FindTreats(board, snek, moveRequest, boost);
+				break;
+			default:
+				Panik(board, snek, moveRequest, boost);
+				break;
 			
-			for (auto& snek : board.Sneks)
-				fff.FillSnek(snek->Body);
-			fff.FillTreats(board.Treats);
+			}
+		}
+
+		void FindTreats(const Board& board, const Snek& snek, Dir& moveRequest, bool& boost)
+		{
+			MMLH::HraciPole hraciPole;
+			hraciPole.FillBoard(board);
+
+			MMLH::FloodFillFinder fff(hraciPole, snek.Body[0]);
 
 			if (fff.FloodFill())
 			{
@@ -244,7 +306,7 @@ struct SnekAI_MMarko_LHosek : public SnekAI
 
 			else
 			{ // panik!
-			
+				Panik(board, snek, moveRequest, boost);
 			}
 
 
@@ -254,6 +316,22 @@ struct SnekAI_MMarko_LHosek : public SnekAI
 
 			
 			//DummyStep(board, snek, moveRequest, boost);
+		}
+
+
+		void Panik(const Board& board, const Snek& snek, Dir& moveRequest, bool& boost)
+		{
+			MMLH::HraciPole hraciPole;
+			hraciPole.FillBoard(board);
+
+			Coord head = snek.Body[0];
+
+			auto testDirection = [&](Dir dir) -> bool
+			{
+				return true;
+			};
+
+			boost =  snek.Body.size() > 3;
 		}
 
 

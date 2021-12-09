@@ -174,7 +174,7 @@ namespace MMLH
 			for (int i = 0; i < 4; ++i)
 			{
 				Coord c = GetCoordInDir(from, dirs[i]);
-				if (IsValidCoord(c) && vals[i] < maxVal)
+				if (IsValidCoord(c) && vals[i] > 0 && vals[i] < maxVal)
 				{
 					operator()(c) = EOccupiedBy::Snek;
 				}
@@ -227,7 +227,6 @@ namespace MMLH
 		Coord m_head;
 		Dir m_prosleElementySmery[Board::Cols][Board::Rows]; // [x][y]
 		HraciPole& m_hraciPole;
-		int m_floodFillArea;
 
 
 
@@ -245,7 +244,6 @@ namespace MMLH
 		{
 			FastDeque<Coord> elementyKProchazeni;
 
-			m_floodFillArea = 0;
 			memset(m_prosleElementySmery, 0, sizeof(m_prosleElementySmery));
 
 			elementyKProchazeni.push_back(m_head);
@@ -264,11 +262,10 @@ namespace MMLH
 				auto CheckDirection = [&](Dir dir)
 				{
 					Coord nc = GetCoordInDir(current, dir);
-					if (nc.x < Board::Cols && nc.y < Board::Rows && m_hraciPole.IsUnoccupiedBySnake(nc) && m_prosleElementySmery[nc.x][nc.y] == Dir::None)
+					if (IsValidCoord(nc) && m_hraciPole.IsUnoccupiedBySnake(nc) && m_prosleElementySmery[nc.x][nc.y] == Dir::None)
 					{
 						m_prosleElementySmery[nc.x][nc.y] = dir;
 						elementyKProchazeni.push_back(nc);
-						++m_floodFillArea;
 
 					}
 				};
@@ -389,12 +386,12 @@ struct SnekAI_MMarko_LHosek : public SnekAI
 	{
 		boost = false;
 
-		MMLH::FloodFillFinder fff(hraciPole_Treats, start);
 		int attempts = 0;
 		int maxArea = 0;
 
 		for (int attempts = 0; attempts < 8; ++attempts)
 		{
+			MMLH::FloodFillFinder fff(hraciPole_Treats, start);
 			if (!fff.FloodFill())
 				break;
 			auto path = fff.FindReversePath(fff.m_endPos);
@@ -402,7 +399,7 @@ struct SnekAI_MMarko_LHosek : public SnekAI
 			// test if path doesn't block us
 			MMLH::HraciPole testPole(hraciPole_Treats);
 			testPole.FillSnek(path);
-			int resultArea = testPole.CalculateFreeAreaAround(path.back());
+			int resultArea = testPole.CalculateFreeAreaAround(path.front());
 			if (resultArea > maxArea)
 			{
 				maxArea = resultArea;
@@ -411,7 +408,7 @@ struct SnekAI_MMarko_LHosek : public SnekAI
 			hraciPole_Treats(fff.m_endPos) = MMLH::EOccupiedBy::None;
 		}
 
-		if (maxArea <= bodySize)
+		if (maxArea <= 5*bodySize)
 		{ // oh shit...
 			Panik(hraciPole_Treats, start, moveRequest, boost);
 		}
@@ -420,7 +417,7 @@ struct SnekAI_MMarko_LHosek : public SnekAI
 
 	void Panik(MMLH::HraciPole hraciPole, Coord head, Dir& moveRequest, bool& boost)
 	{
-		//std::cout<< "Panik!" << std::endl;
+		std::cout<< "Panik!" << std::endl;
 		auto testDirection = [&](Dir dir) -> bool
 		{
 			Coord nextCoord = MMLH::GetCoordInDir(head, dir);

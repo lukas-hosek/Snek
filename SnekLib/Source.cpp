@@ -28,7 +28,7 @@ int main()
 				Team::MLabutRKrenek,
 				Team::PManMSourek,
 				Team::PNohejlMMatous,
-				//Team::PSmrcekLSuk,
+				Team::PSmrcekLSuk,
 				Team::TBarakMJarolimek,
 				Team::TGrunwaldDMikes,
 				Team::TJanakMKlima,

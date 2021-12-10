@@ -417,7 +417,6 @@ struct SnekAI_MMarko_LHosek : public SnekAI
 
 	void Panik(MMLH::HraciPole hraciPole, Coord head, Dir& moveRequest, bool& boost)
 	{
-		std::cout<< "Panik!" << std::endl;
 		auto testDirection = [&](Dir dir) -> bool
 		{
 			Coord nextCoord = MMLH::GetCoordInDir(head, dir);
